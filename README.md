@@ -7,11 +7,11 @@ in a chosen directory. The agent receives a prompt built from a configurable
 template (issue key, summary, description, link, …).
 
 ```
-╭ Jira — My open issues (23) ─────────────────────────────────────────╮
-│ KEY         STATUS        ASSIGNEE          UPDATED          SUMMARY│
-│ PROJ-142    In Progress   Vitalii R.        2026-07-14 10:02 Fix …  │
-│ PROJ-137    To Do         Vitalii R.        2026-07-13 18:40 Add …  │
-╰─────────────────────────────────────────────────────────────────────╯
+╭ Jira — My open issues (23) ──────────────────────────────────────────────────────────────╮
+│ KEY         TYPE    STATUS        FIX VERSION    ASSIGNEE       UPDATED          SUMMARY │
+│ PROJ-142    Bug     In Progress   2.4.0          Vitalii R.     2026-07-14 10:02 Fix …   │
+│ PROJ-137    Story   To Do         —              Vitalii R.     2026-07-13 18:40 Add …   │
+╰──────────────────────────────────────────────────────────────────────────────────────────╯
  Enter open · f filters · / search · s status · d delegate · o browser
 ```
 
@@ -24,7 +24,8 @@ template (issue key, summary, description, link, …).
 - **Epics** — epics stand out with a magenta type badge and a `▸` marker;
   `→` expands one inline to show its child issues (`parent = …`, with a
   `"Epic Link"` fallback for Server/DC), `←` collapses it.
-- **Issue details** — `Enter` opens a scrollable view with the description
+- **Fix versions** — the issue list shows Fix Version/s at a glance; `Enter`
+  opens a scrollable detail view with the same metadata and the description
   (Cloud ADF documents are flattened to plain text).
 - **Status transitions** — `s` lists the transitions available for the issue
   and applies the one you pick.
@@ -161,7 +162,7 @@ command = "herdr-jira.open-jira-tab"
 ## Delegate prompt placeholders
 
 `{key}` `{summary}` `{description}` `{url}` `{status}` `{assignee}`
-`{reporter}` `{priority}` `{type}` `{labels}`
+`{reporter}` `{priority}` `{type}` `{labels}` `{fix_versions}`
 
 With `submit = true`, `herdr agent prompt <pane-id> <text>` delivers and
 submits the prompt server-side, avoiding a race between pasted text and Enter.

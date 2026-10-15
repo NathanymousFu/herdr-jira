@@ -62,6 +62,14 @@ fn type_style(issue_type: &str) -> Style {
     }
 }
 
+fn fix_versions_text(versions: &[String]) -> String {
+    if versions.is_empty() {
+        "—".to_string()
+    } else {
+        versions.join(", ")
+    }
+}
+
 fn draw_list(f: &mut Frame, app: &App, area: Rect) {
     let title = if app.current_title.is_empty() {
         "Jira".to_string()
@@ -95,6 +103,7 @@ fn draw_list(f: &mut Frame, app: &App, area: Rect) {
                 Cell::from(format!("{prefix}{}", i.key)).style(key_style),
                 Cell::from(i.issue_type.clone()).style(type_style(&i.issue_type)),
                 Cell::from(i.status.clone()).style(Style::new().fg(status_color(&i.status_category))),
+                Cell::from(fix_versions_text(&i.fix_versions)).style(Style::new().fg(Color::Yellow)),
                 Cell::from(i.assignee.clone()).style(Style::new().fg(Color::Magenta)),
                 Cell::from(i.updated.clone()).style(Style::new().fg(Color::DarkGray)),
                 Cell::from(i.summary.clone()),
@@ -109,13 +118,14 @@ fn draw_list(f: &mut Frame, app: &App, area: Rect) {
             Constraint::Length(15),
             Constraint::Length(7),
             Constraint::Length(14),
+            Constraint::Length(15),
             Constraint::Length(18),
             Constraint::Length(16),
             Constraint::Min(20),
         ],
     )
     .header(
-        Row::new(vec!["KEY", "TYPE", "STATUS", "ASSIGNEE", "UPDATED", "SUMMARY"])
+        Row::new(vec!["KEY", "TYPE", "STATUS", "FIX VERSION", "ASSIGNEE", "UPDATED", "SUMMARY"])
             .style(Style::new().fg(Color::DarkGray).add_modifier(Modifier::BOLD)),
     )
     .row_highlight_style(Style::new().bg(Color::DarkGray).add_modifier(Modifier::BOLD))
@@ -136,6 +146,7 @@ fn draw_list(f: &mut Frame, app: &App, area: Rect) {
 
 fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
     let Some(issue) = app.selected_issue() else { return };
+    let fix_versions = fix_versions_text(&issue.fix_versions);
     let mut lines: Vec<Line> = vec![
         Line::from(vec![
             Span::styled(issue.key.clone(), Style::new().fg(ACCENT).bold()),
@@ -148,6 +159,7 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
         meta_line("Priority", &issue.priority, Color::White),
         meta_line("Assignee", &issue.assignee, Color::Magenta),
         meta_line("Reporter", &issue.reporter, Color::Magenta),
+        meta_line("Fix Version/s", &fix_versions, Color::Yellow),
         meta_line("Updated", &issue.updated, Color::White),
     ];
     if !issue.labels.is_empty() {
@@ -183,7 +195,7 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
 
 fn meta_line(label: &str, value: &str, color: Color) -> Line<'static> {
     Line::from(vec![
-        Span::styled(format!("{label:<10}"), Style::new().fg(Color::DarkGray)),
+        Span::styled(format!("{label:<14}"), Style::new().fg(Color::DarkGray)),
         Span::styled(value.to_string(), Style::new().fg(color)),
     ])
 }

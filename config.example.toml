@@ -56,11 +56,12 @@ jql = 'text ~ "{query}" ORDER BY updated DESC'
 [delegate]
 # Prompt sent to the agent you pick with `d`. Placeholders:
 #   {key} {summary} {description} {url} {status} {assignee} {reporter}
-#   {priority} {type} {labels}
+#   {priority} {type} {labels} {fix_versions}
 prompt = """
 You are asked to work on Jira issue {key}: {summary}
 
 Status: {status} | Assignee: {assignee} | Priority: {priority} | Type: {type}
+Fix versions: {fix_versions}
 Link: {url}
 
 Description:

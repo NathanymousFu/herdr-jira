@@ -22,6 +22,7 @@ pub struct Issue {
     pub reporter: String,
     pub updated: String,
     pub labels: Vec<String>,
+    pub fix_versions: Vec<String>,
     pub description: String,
     pub url: String,
 }
@@ -41,7 +42,7 @@ pub struct JiraClient {
     agent: ureq::Agent,
 }
 
-const FIELDS: &str = "summary,status,issuetype,priority,assignee,reporter,updated,labels,description";
+const FIELDS: &str = "summary,status,issuetype,priority,assignee,reporter,updated,labels,fixVersions,description";
 
 impl JiraClient {
     pub fn new(cfg: &crate::config::Config) -> Result<Self, String> {
@@ -168,6 +169,7 @@ impl JiraClient {
                         .collect()
                 })
                 .unwrap_or_default(),
+            fix_versions: fix_version_names(&f["fixVersions"]),
             description: description_text(&f["description"]),
         }
     }
@@ -220,6 +222,17 @@ fn extract_error(body: &str) -> String {
     }
 }
 
+fn fix_version_names(v: &Value) -> Vec<String> {
+    v.as_array()
+        .map(|versions| {
+            versions
+                .iter()
+                .filter_map(|version| version["name"].as_str().map(String::from))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 /// Description is a plain string on API v2 (Server/DC), but may arrive as an
 /// ADF document object from Cloud — flatten either to displayable text.
 fn description_text(v: &Value) -> String {
@@ -237,6 +250,16 @@ fn description_text(v: &Value) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fix_version_names_extracts_multiple_versions() {
+        let versions = serde_json::json!([
+            {"id": "10001", "name": "2.4.0", "released": false},
+            {"id": "10002", "name": "2.5.0", "released": false}
+        ]);
+        assert_eq!(fix_version_names(&versions), ["2.4.0", "2.5.0"]);
+        assert!(fix_version_names(&Value::Null).is_empty());
+    }
 
     #[test]
     fn description_plain_string_passes_through() {

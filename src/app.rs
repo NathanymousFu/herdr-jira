@@ -1014,6 +1014,7 @@ mod tests {
             reporter: "Someone".into(),
             updated: "2026-07-14 10:00".into(),
             labels: vec!["auth".into(), "urgent".into()],
+            fix_versions: vec!["2.4.0".into(), "2.5.0".into()],
             description: "Steps to reproduce…".into(),
             url: "https://x.atlassian.net/browse/PROJ-7".into(),
         }
@@ -1037,6 +1038,15 @@ mod tests {
             p,
             "PROJ-7: Fix login [To Do/High] auth, urgent\nSteps to reproduce…\nhttps://x.atlassian.net/browse/PROJ-7"
         );
+    }
+
+    #[test]
+    fn fix_versions_placeholder_is_filled() {
+        let cfg = test_cfg("{fix_versions}", 0);
+        let mut issue = test_issue();
+        assert_eq!(build_prompt(&cfg, &issue), "2.4.0, 2.5.0");
+        issue.fix_versions.clear();
+        assert_eq!(build_prompt(&cfg, &issue), "—");
     }
 
     #[test]
@@ -1067,6 +1077,11 @@ pub fn build_prompt(cfg: &Config, issue: &Issue) -> String {
     if max > 0 && desc.chars().count() > max {
         desc = desc.chars().take(max).collect::<String>() + "\n[… description truncated]";
     }
+    let fix_versions = if issue.fix_versions.is_empty() {
+        "—".to_string()
+    } else {
+        issue.fix_versions.join(", ")
+    };
     cfg.delegate
         .prompt
         .replace("{key}", &issue.key)
@@ -1079,6 +1094,7 @@ pub fn build_prompt(cfg: &Config, issue: &Issue) -> String {
         .replace("{priority}", &issue.priority)
         .replace("{type}", &issue.issue_type)
         .replace("{labels}", &issue.labels.join(", "))
+        .replace("{fix_versions}", &fix_versions)
         .trim()
         .to_string()
 }
